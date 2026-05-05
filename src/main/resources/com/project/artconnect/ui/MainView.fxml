@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox prefHeight="800.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.project.artconnect.ui.MainController">
+    <MenuBar>
+        <Menu text="File">
+            <MenuItem text="Exit" onAction="#handleExit"/>
+        </Menu>
+        <Menu text="Help">
+            <MenuItem text="About"/>
+        </Menu>
+    </MenuBar>
+    
+    <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <Tab text="Discover">
+            <fx:include source="DiscoverTab.fxml"/>
+        </Tab>
+        <Tab text="Artists">
+            <fx:include source="ArtistsTab.fxml"/>
+        </Tab>
+        <Tab text="Artworks">
+            <fx:include source="ArtworksTab.fxml"/>
+        </Tab>
+        <Tab text="Galleries">
+            <fx:include source="GalleriesTab.fxml"/>
+        </Tab>
+        <Tab text="Exhibitions">
+            <fx:include source="ExhibitionsTab.fxml"/>
+        </Tab>
+        <Tab text="Workshops">
+            <fx:include source="WorkshopsTab.fxml"/>
+        </Tab>
+        <Tab text="Community">
+            <fx:include source="CommunityTab.fxml"/>
+        </Tab>
+    </TabPane>
+    
+    <HBox alignment="CENTER_RIGHT" prefHeight="30.0" style="-fx-background-color: #f0f0f0;">
+        <padding>
+            <Insets right="10.0" left="10.0"/>
+        </padding>
+        <Label text="ArtConnect Pro v1.0 | Mode: In-Memory"/>
+    </HBox>
+</VBox>
