@@ -16,4 +16,9 @@
             <TableColumn fx:id="themeColumn" text="Theme" prefWidth="180" />
         </columns>
     </TableView>
+    <HBox spacing="10.0" alignment="CENTER_RIGHT">
+        <Button text="Add Exhibition" onAction="#handleAdd" />
+        <Button text="Edit Exhibition" onAction="#handleEdit" />
+        <Button text="Delete Exhibition" onAction="#handleDelete" />
+    </HBox>
 </VBox>

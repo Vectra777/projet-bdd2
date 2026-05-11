@@ -31,4 +31,19 @@ public class JdbcGalleryService implements GalleryService {
     public List<Exhibition> getExhibitionsByGallery(Gallery gallery) {
         return gallery == null ? List.of() : gallery.getExhibitions();
     }
+
+    @Override
+    public void createGallery(Gallery gallery) {
+        galleryDao.save(gallery);
+    }
+
+    @Override
+    public void updateGallery(Gallery gallery) {
+        galleryDao.update(gallery);
+    }
+
+    @Override
+    public void deleteGallery(String name) {
+        galleryDao.delete(name);
+    }
 }

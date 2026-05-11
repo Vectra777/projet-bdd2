@@ -55,6 +55,19 @@ public class JdbcGalleryDao implements GalleryDao {
             JOIN artist ar ON ar.artist_id = aw.artist_id
             ORDER BY ea.exhibition_id, aw.title
             """;
+    private static final String INSERT_SQL = """
+            INSERT INTO gallery (name, address, owner_name, opening_hours, contact_phone, rating, website)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """;
+    private static final String UPDATE_SQL = """
+            UPDATE gallery
+            SET address = ?, owner_name = ?, opening_hours = ?, contact_phone = ?, rating = ?, website = ?
+            WHERE name = ?
+            """;
+    private static final String DELETE_SQL = """
+            DELETE FROM gallery
+            WHERE name = ?
+            """;
 
     @Override
     public Optional<Gallery> findById(Long id) {
@@ -67,6 +80,51 @@ public class JdbcGalleryDao implements GalleryDao {
     @Override
     public List<Gallery> findAll() {
         return new ArrayList<>(loadGalleries().values());
+    }
+
+    @Override
+    public void save(Gallery gallery) {
+        try (Connection connection = ConnectionManager.getConnection();
+                PreparedStatement statement = connection.prepareStatement(INSERT_SQL)) {
+            statement.setString(1, gallery.getName());
+            statement.setString(2, gallery.getAddress());
+            statement.setString(3, gallery.getOwnerName());
+            statement.setString(4, gallery.getOpeningHours());
+            statement.setString(5, gallery.getContactPhone());
+            statement.setDouble(6, gallery.getRating());
+            statement.setString(7, gallery.getWebsite());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw JdbcSupport.failure("Unable to save gallery", e);
+        }
+    }
+
+    @Override
+    public void update(Gallery gallery) {
+        try (Connection connection = ConnectionManager.getConnection();
+                PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
+            statement.setString(1, gallery.getAddress());
+            statement.setString(2, gallery.getOwnerName());
+            statement.setString(3, gallery.getOpeningHours());
+            statement.setString(4, gallery.getContactPhone());
+            statement.setDouble(5, gallery.getRating());
+            statement.setString(6, gallery.getWebsite());
+            statement.setString(7, gallery.getName());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw JdbcSupport.failure("Unable to update gallery", e);
+        }
+    }
+
+    @Override
+    public void delete(String name) {
+        try (Connection connection = ConnectionManager.getConnection();
+                PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
+            statement.setString(1, name);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw JdbcSupport.failure("Unable to delete gallery", e);
+        }
     }
 
     private Map<Integer, Gallery> loadGalleries() {

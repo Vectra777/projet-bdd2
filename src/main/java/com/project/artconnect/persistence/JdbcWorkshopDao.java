@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,6 +42,24 @@ public class JdbcWorkshopDao implements WorkshopDao {
             JOIN artist ar ON ar.artist_id = w.instructor_id
             ORDER BY w.date, w.title
             """;
+    private static final String INSERT_SQL = """
+            INSERT INTO workshop (title, date, duration_minutes, max_participants, price, location, description, level, instructor_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+    private static final String UPDATE_SQL = """
+            UPDATE workshop
+            SET date = ?, duration_minutes = ?, max_participants = ?, price = ?, location = ?, description = ?, level = ?, instructor_id = ?
+            WHERE title = ?
+            """;
+    private static final String DELETE_SQL = """
+            DELETE FROM workshop
+            WHERE title = ?
+            """;
+    private static final String FIND_ARTIST_ID_SQL = """
+            SELECT artist_id
+            FROM artist
+            WHERE name = ?
+            """;
 
     @Override
     public Optional<Workshop> findById(Long id) {
@@ -53,6 +72,59 @@ public class JdbcWorkshopDao implements WorkshopDao {
     @Override
     public List<Workshop> findAll() {
         return new ArrayList<>(loadWorkshops().values());
+    }
+
+    @Override
+    public void save(Workshop workshop) {
+        try (Connection connection = ConnectionManager.getConnection();
+                PreparedStatement statement = connection.prepareStatement(INSERT_SQL)) {
+            int instructorId = JdbcSupport.requireId(connection, FIND_ARTIST_ID_SQL,
+                    workshop.getInstructor().getName(), "Artist");
+            statement.setString(1, workshop.getTitle());
+            statement.setTimestamp(2, workshop.getDate() == null ? null : Timestamp.valueOf(workshop.getDate()));
+            statement.setInt(3, workshop.getDurationMinutes());
+            statement.setInt(4, workshop.getMaxParticipants());
+            statement.setDouble(5, workshop.getPrice());
+            statement.setString(6, workshop.getLocation());
+            statement.setString(7, workshop.getDescription());
+            statement.setString(8, workshop.getLevel());
+            statement.setInt(9, instructorId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw JdbcSupport.failure("Unable to save workshop", e);
+        }
+    }
+
+    @Override
+    public void update(Workshop workshop) {
+        try (Connection connection = ConnectionManager.getConnection();
+                PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
+            int instructorId = JdbcSupport.requireId(connection, FIND_ARTIST_ID_SQL,
+                    workshop.getInstructor().getName(), "Artist");
+            statement.setTimestamp(1, workshop.getDate() == null ? null : Timestamp.valueOf(workshop.getDate()));
+            statement.setInt(2, workshop.getDurationMinutes());
+            statement.setInt(3, workshop.getMaxParticipants());
+            statement.setDouble(4, workshop.getPrice());
+            statement.setString(5, workshop.getLocation());
+            statement.setString(6, workshop.getDescription());
+            statement.setString(7, workshop.getLevel());
+            statement.setInt(8, instructorId);
+            statement.setString(9, workshop.getTitle());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw JdbcSupport.failure("Unable to update workshop", e);
+        }
+    }
+
+    @Override
+    public void delete(String title) {
+        try (Connection connection = ConnectionManager.getConnection();
+                PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
+            statement.setString(1, title);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw JdbcSupport.failure("Unable to delete workshop", e);
+        }
     }
 
     private Map<Integer, Workshop> loadWorkshops() {

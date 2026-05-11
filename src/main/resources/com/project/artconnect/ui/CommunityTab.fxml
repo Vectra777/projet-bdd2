@@ -10,9 +10,14 @@
     </padding>
     <TableView fx:id="memberTable" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="nameColumn" text="Name" prefWidth="250" />
-            <TableColumn fx:id="emailColumn" text="Email" prefWidth="250" />
+            <TableColumn fx:id="nameColumn" text="Name" prefWidth="200" />
+            <TableColumn fx:id="emailColumn" text="Email" prefWidth="200" />
             <TableColumn fx:id="cityColumn" text="City" prefWidth="150" />
         </columns>
     </TableView>
+    <HBox spacing="10.0" alignment="CENTER_RIGHT">
+        <Button text="Add Member" onAction="#handleAdd" />
+        <Button text="Edit Member" onAction="#handleEdit" />
+        <Button text="Delete Member" onAction="#handleDelete" />
+    </HBox>
 </VBox>

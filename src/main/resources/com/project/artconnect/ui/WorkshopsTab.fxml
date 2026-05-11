@@ -12,9 +12,14 @@
         <columns>
             <TableColumn fx:id="titleColumn" text="Title" prefWidth="200" />
             <TableColumn fx:id="instructorColumn" text="Instructor" prefWidth="150" />
-            <TableColumn fx:id="dateColumn" text="Date" prefWidth="150" />
-            <TableColumn fx:id="priceColumn" text="Price" prefWidth="80" />
-            <TableColumn fx:id="levelColumn" text="Level" prefWidth="100" />
+            <TableColumn fx:id="dateColumn" text="Date" prefWidth="180" />
+            <TableColumn fx:id="priceColumn" text="Price" prefWidth="100" />
+            <TableColumn fx:id="levelColumn" text="Level" prefWidth="120" />
         </columns>
     </TableView>
+    <HBox spacing="10.0" alignment="CENTER_RIGHT">
+        <Button text="Add Workshop" onAction="#handleAdd" />
+        <Button text="Edit Workshop" onAction="#handleEdit" />
+        <Button text="Delete Workshop" onAction="#handleDelete" />
+    </HBox>
 </VBox>

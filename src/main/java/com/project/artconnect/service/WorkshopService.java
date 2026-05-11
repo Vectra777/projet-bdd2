@@ -14,4 +14,10 @@ public interface WorkshopService {
     void bookWorkshop(Workshop workshop, CommunityMember member);
 
     List<Booking> getBookingsByMember(CommunityMember member);
+
+    void createWorkshop(Workshop workshop);
+
+    void updateWorkshop(Workshop workshop);
+
+    void deleteWorkshop(String title);
 }

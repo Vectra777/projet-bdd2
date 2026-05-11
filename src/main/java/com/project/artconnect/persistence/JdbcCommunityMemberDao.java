@@ -91,6 +91,19 @@ public class JdbcCommunityMemberDao implements CommunityMemberDao {
             JOIN artist ar ON ar.artist_id = aw.artist_id
             ORDER BY r.review_date
             """;
+    private static final String INSERT_SQL = """
+            INSERT INTO community_member (name, email, birth_year, phone, city, membership_type)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """;
+    private static final String UPDATE_SQL = """
+            UPDATE community_member
+            SET email = ?, birth_year = ?, phone = ?, city = ?, membership_type = ?
+            WHERE name = ?
+            """;
+    private static final String DELETE_SQL = """
+            DELETE FROM community_member
+            WHERE name = ?
+            """;
 
     @Override
     public Optional<CommunityMember> findById(Long id) {
@@ -103,6 +116,49 @@ public class JdbcCommunityMemberDao implements CommunityMemberDao {
     @Override
     public List<CommunityMember> findAll() {
         return new ArrayList<>(loadMembers().values());
+    }
+
+    @Override
+    public void save(CommunityMember member) {
+        try (Connection connection = ConnectionManager.getConnection();
+                PreparedStatement statement = connection.prepareStatement(INSERT_SQL)) {
+            statement.setString(1, member.getName());
+            statement.setString(2, member.getEmail());
+            JdbcSupport.setNullableInteger(statement, 3, member.getBirthYear());
+            statement.setString(4, member.getPhone());
+            statement.setString(5, member.getCity());
+            statement.setString(6, member.getMembershipType());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw JdbcSupport.failure("Unable to save community member", e);
+        }
+    }
+
+    @Override
+    public void update(CommunityMember member) {
+        try (Connection connection = ConnectionManager.getConnection();
+                PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
+            statement.setString(1, member.getEmail());
+            JdbcSupport.setNullableInteger(statement, 2, member.getBirthYear());
+            statement.setString(3, member.getPhone());
+            statement.setString(4, member.getCity());
+            statement.setString(5, member.getMembershipType());
+            statement.setString(6, member.getName());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw JdbcSupport.failure("Unable to update community member", e);
+        }
+    }
+
+    @Override
+    public void delete(String name) {
+        try (Connection connection = ConnectionManager.getConnection();
+                PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
+            statement.setString(1, name);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw JdbcSupport.failure("Unable to delete community member", e);
+        }
     }
 
     private Map<Integer, CommunityMember> loadMembers() {

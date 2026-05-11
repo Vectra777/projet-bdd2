@@ -8,5 +8,17 @@
     <padding>
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
     </padding>
-    <ListView fx:id="galleryList" VBox.vgrow="ALWAYS" />
+    <TableView fx:id="galleryTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="nameColumn" text="Name" prefWidth="200" />
+            <TableColumn fx:id="addressColumn" text="Address" prefWidth="250" />
+            <TableColumn fx:id="ratingColumn" text="Rating" prefWidth="100" />
+            <TableColumn fx:id="ownerColumn" text="Owner" prefWidth="150" />
+        </columns>
+    </TableView>
+    <HBox spacing="10.0" alignment="CENTER_RIGHT">
+        <Button text="Add Gallery" onAction="#handleAdd" />
+        <Button text="Edit Gallery" onAction="#handleEdit" />
+        <Button text="Delete Gallery" onAction="#handleDelete" />
+    </HBox>
 </VBox>

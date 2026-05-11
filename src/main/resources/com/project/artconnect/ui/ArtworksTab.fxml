@@ -12,9 +12,14 @@
         <columns>
             <TableColumn fx:id="titleColumn" text="Title" prefWidth="200" />
             <TableColumn fx:id="artistColumn" text="Artist" prefWidth="150" />
-            <TableColumn fx:id="typeColumn" text="Type" prefWidth="100" />
+            <TableColumn fx:id="typeColumn" text="Type" prefWidth="120" />
             <TableColumn fx:id="priceColumn" text="Price" prefWidth="100" />
-            <TableColumn fx:id="statusColumn" text="Status" prefWidth="150" />
+            <TableColumn fx:id="statusColumn" text="Status" prefWidth="100" />
         </columns>
     </TableView>
+    <HBox spacing="10.0" alignment="CENTER_RIGHT">
+        <Button text="Add Artwork" onAction="#handleAdd" />
+        <Button text="Edit Artwork" onAction="#handleEdit" />
+        <Button text="Delete Artwork" onAction="#handleDelete" />
+    </HBox>
 </VBox>

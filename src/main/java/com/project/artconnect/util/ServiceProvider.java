@@ -4,12 +4,14 @@ import com.project.artconnect.config.DatabaseConfig;
 import com.project.artconnect.dao.ArtistDao;
 import com.project.artconnect.dao.ArtworkDao;
 import com.project.artconnect.dao.CommunityMemberDao;
+import com.project.artconnect.dao.ExhibitionDao;
 import com.project.artconnect.dao.GalleryDao;
 import com.project.artconnect.dao.WorkshopDao;
 import com.project.artconnect.persistence.JdbcArtistDao;
 import com.project.artconnect.persistence.JdbcArtworkDao;
 import com.project.artconnect.persistence.JdbcCommunityMemberDao;
 import com.project.artconnect.persistence.JdbcDisciplineDao;
+import com.project.artconnect.persistence.JdbcExhibitionDao;
 import com.project.artconnect.persistence.JdbcGalleryDao;
 import com.project.artconnect.persistence.JdbcWorkshopDao;
 import com.project.artconnect.service.*;
@@ -27,6 +29,7 @@ public class ServiceProvider {
     private static final GalleryService galleryService;
     private static final WorkshopService workshopService;
     private static final CommunityService communityService;
+    private static final ExhibitionService exhibitionService;
 
     static {
         Services services = initializeServices();
@@ -35,6 +38,7 @@ public class ServiceProvider {
         galleryService = services.galleryService();
         workshopService = services.workshopService();
         communityService = services.communityService();
+        exhibitionService = services.exhibitionService();
     }
 
     public static ArtistService getArtistService() {
@@ -57,6 +61,10 @@ public class ServiceProvider {
         return communityService;
     }
 
+    public static ExhibitionService getExhibitionService() {
+        return exhibitionService;
+    }
+
     private static Services initializeServices() {
         if (DatabaseConfig.JDBC_ENABLED) {
             try (var ignored = ConnectionManager.getConnection()) {
@@ -74,6 +82,7 @@ public class ServiceProvider {
         GalleryDao galleryDao = new JdbcGalleryDao();
         WorkshopDao workshopDao = new JdbcWorkshopDao();
         CommunityMemberDao communityMemberDao = new JdbcCommunityMemberDao();
+        ExhibitionDao exhibitionDao = new JdbcExhibitionDao();
         JdbcDisciplineDao disciplineDao = new JdbcDisciplineDao();
 
         return new Services(
@@ -81,7 +90,8 @@ public class ServiceProvider {
                 new JdbcArtworkService(artworkDao),
                 new JdbcGalleryService(galleryDao),
                 new JdbcWorkshopService(workshopDao),
-                new JdbcCommunityService(communityMemberDao));
+                new JdbcCommunityService(communityMemberDao),
+                new JdbcExhibitionService(exhibitionDao));
     }
 
     private static Services createInMemoryServices() {
@@ -96,7 +106,10 @@ public class ServiceProvider {
         workshopService.initData(artistService);
         communityService.initData(artworkService);
 
-        return new Services(artistService, artworkService, galleryService, workshopService, communityService);
+        InMemoryExhibitionService exhibitionService = new InMemoryExhibitionService(galleryService);
+
+        return new Services(artistService, artworkService, galleryService, workshopService, communityService,
+                exhibitionService);
     }
 
     private record Services(
@@ -104,6 +117,7 @@ public class ServiceProvider {
             ArtworkService artworkService,
             GalleryService galleryService,
             WorkshopService workshopService,
-            CommunityService communityService) {
+            CommunityService communityService,
+            ExhibitionService exhibitionService) {
     }
 }

@@ -86,6 +86,21 @@ public class JdbcWorkshopService implements WorkshopService {
         return member == null ? List.of() : member.getBookings();
     }
 
+    @Override
+    public void createWorkshop(Workshop workshop) {
+        workshopDao.save(workshop);
+    }
+
+    @Override
+    public void updateWorkshop(Workshop workshop) {
+        workshopDao.update(workshop);
+    }
+
+    @Override
+    public void deleteWorkshop(String title) {
+        workshopDao.delete(title);
+    }
+
     private int findMemberId(Connection connection, CommunityMember member) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(FIND_MEMBER_ID_SQL)) {
             statement.setString(1, member.getEmail());
