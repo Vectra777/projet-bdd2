@@ -30,15 +30,29 @@ public class ServiceProvider {
     private static final WorkshopService workshopService;
     private static final CommunityService communityService;
     private static final ExhibitionService exhibitionService;
+    private static final boolean usingJdbc;
 
     static {
-        Services services = initializeServices();
+        boolean jdbc = false;
+        Services services;
+        if (DatabaseConfig.JDBC_ENABLED) {
+            try (var ignored = ConnectionManager.getConnection()) {
+                services = createJdbcServices();
+                jdbc = true;
+            } catch (SQLException | RuntimeException e) {
+                System.err.println("JDBC initialization failed, fallback to in-memory services: " + e.getMessage());
+                services = createInMemoryServices();
+            }
+        } else {
+            services = createInMemoryServices();
+        }
         artistService = services.artistService();
         artworkService = services.artworkService();
         galleryService = services.galleryService();
         workshopService = services.workshopService();
         communityService = services.communityService();
         exhibitionService = services.exhibitionService();
+        usingJdbc = jdbc;
     }
 
     public static ArtistService getArtistService() {
@@ -65,15 +79,8 @@ public class ServiceProvider {
         return exhibitionService;
     }
 
-    private static Services initializeServices() {
-        if (DatabaseConfig.JDBC_ENABLED) {
-            try (var ignored = ConnectionManager.getConnection()) {
-                return createJdbcServices();
-            } catch (SQLException | RuntimeException e) {
-                System.err.println("JDBC initialization failed, fallback to in-memory services: " + e.getMessage());
-            }
-        }
-        return createInMemoryServices();
+    public static boolean isUsingJdbc() {
+        return usingJdbc;
     }
 
     private static Services createJdbcServices() {

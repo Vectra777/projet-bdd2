@@ -68,6 +68,12 @@ public class JdbcGalleryDao implements GalleryDao {
             DELETE FROM gallery
             WHERE name = ?
             """;
+    private static final String DELETE_EXHIBITIONS_SQL = """
+            DELETE e
+            FROM exhibition e
+            JOIN gallery g ON g.gallery_id = e.gallery_id
+            WHERE g.name = ?
+            """;
 
     @Override
     public Optional<Gallery> findById(Long id) {
@@ -118,10 +124,22 @@ public class JdbcGalleryDao implements GalleryDao {
 
     @Override
     public void delete(String name) {
-        try (Connection connection = ConnectionManager.getConnection();
-                PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
+        try (Connection connection = ConnectionManager.getConnection()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement deleteExhibitionsStatement = connection.prepareStatement(DELETE_EXHIBITIONS_SQL);
+                    PreparedStatement deleteGalleryStatement = connection.prepareStatement(DELETE_SQL)) {
+                deleteExhibitionsStatement.setString(1, name);
+                deleteExhibitionsStatement.executeUpdate();
+
+                deleteGalleryStatement.setString(1, name);
+                deleteGalleryStatement.executeUpdate();
+                connection.commit();
+            } catch (SQLException e) {
+                JdbcSupport.rollbackQuietly(connection);
+                throw e;
+            } finally {
+                connection.setAutoCommit(true);
+            }
         } catch (SQLException e) {
             throw JdbcSupport.failure("Unable to delete gallery", e);
         }

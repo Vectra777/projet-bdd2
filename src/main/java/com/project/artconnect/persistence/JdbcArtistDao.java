@@ -49,6 +49,22 @@ public class JdbcArtistDao implements ArtistDao {
             DELETE FROM artist
             WHERE name = ?
             """;
+    private static final String FIND_ARTWORK_IDS_BY_ARTIST_SQL = """
+            SELECT aw.artwork_id
+            FROM artwork aw
+            JOIN artist ar ON ar.artist_id = aw.artist_id
+            WHERE ar.name = ?
+            """;
+    private static final String DELETE_EXHIBITION_LINKS_SQL = """
+            DELETE FROM exhibition_artwork
+            WHERE artwork_id = ?
+            """;
+    private static final String DELETE_WORKSHOPS_SQL = """
+            DELETE w
+            FROM workshop w
+            JOIN artist ar ON ar.artist_id = w.instructor_id
+            WHERE ar.name = ?
+            """;
     private static final String FIND_ARTIST_ID_SQL = """
             SELECT artist_id
             FROM artist
@@ -126,10 +142,29 @@ public class JdbcArtistDao implements ArtistDao {
 
     @Override
     public void delete(String artistName) {
-        try (Connection connection = ConnectionManager.getConnection();
-                PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
-            statement.setString(1, artistName);
-            statement.executeUpdate();
+        try (Connection connection = ConnectionManager.getConnection()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement deleteLinksStatement = connection.prepareStatement(DELETE_EXHIBITION_LINKS_SQL);
+                    PreparedStatement deleteWorkshopsStatement = connection.prepareStatement(DELETE_WORKSHOPS_SQL);
+                    PreparedStatement deleteArtistStatement = connection.prepareStatement(DELETE_SQL)) {
+                for (Integer artworkId : findArtworkIdsByArtist(connection, artistName)) {
+                    deleteLinksStatement.setInt(1, artworkId);
+                    deleteLinksStatement.addBatch();
+                }
+                deleteLinksStatement.executeBatch();
+
+                deleteWorkshopsStatement.setString(1, artistName);
+                deleteWorkshopsStatement.executeUpdate();
+
+                deleteArtistStatement.setString(1, artistName);
+                deleteArtistStatement.executeUpdate();
+                connection.commit();
+            } catch (SQLException e) {
+                JdbcSupport.rollbackQuietly(connection);
+                throw e;
+            } finally {
+                connection.setAutoCommit(true);
+            }
         } catch (SQLException e) {
             throw JdbcSupport.failure("Unable to delete artist", e);
         }
@@ -138,6 +173,19 @@ public class JdbcArtistDao implements ArtistDao {
     @Override
     public List<Artist> findByCity(String city) {
         return queryArtists(FIND_BY_CITY_SQL, city);
+    }
+
+    private List<Integer> findArtworkIdsByArtist(Connection connection, String artistName) throws SQLException {
+        List<Integer> artworkIds = new ArrayList<>();
+        try (PreparedStatement statement = connection.prepareStatement(FIND_ARTWORK_IDS_BY_ARTIST_SQL)) {
+            statement.setString(1, artistName);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    artworkIds.add(resultSet.getInt("artwork_id"));
+                }
+            }
+        }
+        return artworkIds;
     }
 
     private List<Artist> queryArtists(String sql, String parameter) {

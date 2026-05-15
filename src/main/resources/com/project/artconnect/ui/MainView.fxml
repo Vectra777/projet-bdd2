@@ -42,6 +42,6 @@
         <padding>
             <Insets right="10.0" left="10.0"/>
         </padding>
-        <Label text="ArtConnect Pro v1.0 | Mode: In-Memory"/>
+        <Label fx:id="modeLabel" text="ArtConnect Pro v1.0"/>
     </HBox>
 </VBox>

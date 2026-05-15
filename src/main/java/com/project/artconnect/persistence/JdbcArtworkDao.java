@@ -65,6 +65,10 @@ public class JdbcArtworkDao implements ArtworkDao {
             DELETE FROM artwork
             WHERE title = ?
             """;
+    private static final String DELETE_EXHIBITION_LINKS_SQL = """
+            DELETE FROM exhibition_artwork
+            WHERE artwork_id = ?
+            """;
     private static final String FIND_ARTIST_ID_SQL = """
             SELECT artist_id
             FROM artist
@@ -149,10 +153,24 @@ public class JdbcArtworkDao implements ArtworkDao {
 
     @Override
     public void delete(String title) {
-        try (Connection connection = ConnectionManager.getConnection();
-                PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
-            statement.setString(1, title);
-            statement.executeUpdate();
+        try (Connection connection = ConnectionManager.getConnection()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement deleteLinksStatement = connection.prepareStatement(DELETE_EXHIBITION_LINKS_SQL);
+                    PreparedStatement deleteArtworkStatement = connection.prepareStatement(DELETE_SQL)) {
+                int artworkId = JdbcSupport.requireId(connection, FIND_ARTWORK_ID_SQL, title, "Artwork");
+
+                deleteLinksStatement.setInt(1, artworkId);
+                deleteLinksStatement.executeUpdate();
+
+                deleteArtworkStatement.setString(1, title);
+                deleteArtworkStatement.executeUpdate();
+                connection.commit();
+            } catch (SQLException e) {
+                JdbcSupport.rollbackQuietly(connection);
+                throw e;
+            } finally {
+                connection.setAutoCommit(true);
+            }
         } catch (SQLException e) {
             throw JdbcSupport.failure("Unable to delete artwork", e);
         }
